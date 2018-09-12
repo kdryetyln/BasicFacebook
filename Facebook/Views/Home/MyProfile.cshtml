@@ -1,0 +1,238 @@
+﻿@using Facebook.Models.BaseEntity
+@using Facebook.Models.Repository
+@using Facebook.SessionSettings
+
+@model ICollection<PostDto>
+
+@{
+    FacebookDbContext _db = new FacebookDbContext();
+    Layout = null;
+    var User = _db.Users.ToList();
+}
+<html>
+<head>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Css/Homecss.css" rel="stylesheet" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body style="padding-top:0px">
+    <nav class="navbar navbar-inverse navbar-fixed-top" style="background-color:#365899;height:40px;border-color:transparent;">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/Home/Home"> <img src="~/image/bgwhite.png" width="30" height="30" /></a>
+                <form class="navbar-form navbar-left" action="/action_page.php">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" type="submit">
+                                <i class="glyphicon glyphicon-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <ul class="nav navbar-nav  navbar-right">
+                @{var name = SessionSetting.SessionSet<User>.Get("Login").Name;}
+                <li>
+                    <a href="/Home/MyProfile/" title="My Profile">
+                        <div class="media-left">
+                            <img class="media-object photo-profile img-circle" src="~/image/facebook-profile.png" width="20" height="20" alt="...">
+                        </div>
+                        <div class="media-right">
+                            @name
+                        </div>
+                    </a>
+                </li>
+                <li><a href="/RelationShip/GetFriendns" title="My Friends"><span class="glyphicon glyphicon-user"></span><span class="glyphicon glyphicon-user"></span></a></li>
+                <li><a href="/Home/Home" title="Home"><span class="glyphicon glyphicon-home"></span></a></li>
+
+                <li><a href="/Chat/Chat" title="My Messages"><span class="glyphicon glyphicon-comment"></span></a></li>
+                <li class="nav-item dropdown">
+
+                    <a v-on:click="show = !show" class="glyphicon glyphicon-globe dropdown-toggle" data-toggle="dropdown" title="My Notifications">
+                        <i class="far fa-2x fa-bell"></i>
+                        <span id="circle"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                        <li class="header" style="text-align:left">
+                            <div class="media">
+                                <div class="media-left text-left">
+                                    Notifications
+                                </div>
+                                <div class="media-left text-right" style="padding-left:73px">
+                                    <a class="notification-link" href="/Home/Home">Mark All Read As</a>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <ul class="menu" style="list-style-type:none">
+                                @{
+                                    FacebookDbContext db = new FacebookDbContext();
+                                    var userID = SessionSetting.SessionSet<User>.Get("Login").ID;
+                                    var myUser = db.Users.FirstOrDefault(k => k.ID == userID);
+                                    var list = db.Notifications.Where(x => (x.PostUserID == myUser.ID) && (x.IsShow == true)).ToList();
+                                    BaseRepository<Notification> br = new BaseRepository<Notification>();
+
+                                }
+                                @foreach (var item in list)
+                                {
+                                    <li>
+                                        <div class="media">
+                                            <div class="media-left">
+                                                <img class="media-object photo-profile img-circle" src="~/image/facebook-profile.png" width="20" height="20" alt="...">
+                                            </div>
+                                            <div class="media-right">
+                                                @item.NotifyText
+                                            </div>
+                                        </div>
+                                    </li>
+                                    var not = db.Notifications.Where(k => k.ID == item.ID).First();
+                                    not.IsShow = false;
+                                    br.Update(not);
+                                }
+                            </ul>
+                        </li>
+                        <li class="footer" style="text-align:center"><a href="#">View all</a></li>
+                    </ul>
+                </li>
+
+                <li><a href="/User/Login" method="post" title="Logout"><span class="glyphicon glyphicon-log-out"></span></a></li>
+            </ul>
+
+        </div>
+    </nav>
+    <div class="container" style="margin-top:75px">
+
+        <div class="panel panel-default panel-custom">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    My Profile - @name
+                </h3>
+            </div>
+            <div class="panel-body">
+
+                <div class="col-md-7">
+
+                    @foreach (var item in Model)
+                    {
+                        var Commentes = _db.Comments.Where(k => k.PostID == item.ID).OrderByDescending(k => k.CreatedDate).ToList();
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <section class="post-heading">
+                                    <div class="row">
+                                        <div class="col-md-11">
+                                            <div class="media">
+                                                <div class="media-left">
+                                                    <a href="#">
+                                                        <img class="media-object photo-profile" src="~/image/facebook-profile.png" width="40" height="40" alt="...">
+                                                    </a>
+                                                </div>
+                                                <div class="media-body">
+                                                    <a href="#" class="anchor-username"><h4 class="media-heading">@item.UserName</h4></a>
+                                                    <h6 style="color:#3d3b3b">@item.CreatedDate</h6>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <a href="#"><i class="glyphicon glyphicon-chevron-down"></i></a>
+                                        </div>
+                                    </div>
+                                </section>
+                                <section class="post-body" style="word-wrap:break-word;">
+                                    <p>
+                                        @item.PostText
+                                    </p>
+                                </section>
+                                <section class="post-footer">
+                                    <hr>
+                                    <div class="post-footer-option container">
+                                        <ul class="list-unstyled">
+                                            <li>
+                                                <a href="/Post/PostLike/@item.ID">
+                                                    @if (!_db.Likes.Where(k => k.LikeUserID == userID && k.PostID == item.ID).Any())
+                                                    {<i class="glyphicon glyphicon-thumbs-up"></i> }
+                                                    else
+                                                    { <i class="glyphicon glyphicon-thumbs-up" style="color:#3b5998"></i>}
+
+
+                                                    Like&nbsp;@_db.Likes.Where(k => k.PostID == item.ID).ToList().Count()
+                                                </a>
+                                            </li>
+                                            <li><a href="#"><i class="glyphicon glyphicon-comment"></i> Comment&nbsp;@Commentes.Where(k => k.PostID == item.ID).ToList().Count()</a></li>
+                                            <li><a href="#"><i class="glyphicon glyphicon-share-alt"></i> Share&nbsp;0</a></li>
+                                            @if (item.UserID == userID)
+                                            {
+                                                <li><a href="/Post/PostDel/@item.ID"><i class="glyphicon glyphicon-trash"></i> Delete</a></li>
+                                            }
+                                        </ul>
+
+                                    </div>
+
+
+                                    @foreach (var item2 in Commentes)
+                                    {
+                                        <div class="post-footer-comment-wrapper">
+                                            <div class="comment-form">
+
+                                            </div>
+                                            <div class="comment">
+                                                <div class="media">
+                                                    <div class="media-left">
+                                                        <a href="#">
+                                                            <img class="media-object photo-profile" src="~/image/facebook-profile.png" width="32" height="32" alt="...">
+                                                        </a>
+                                                    </div>
+                                                    <div class="media-body">
+                                                        <a href="#" class="anchor-username"><h4 class="media-heading">@User.Where(k => k.ID == item2.CommentUserID).FirstOrDefault().Name</h4></a>
+                                                        <h6 style="color:#3d3b3b">@item2.CreatedDate</h6>
+                                                    </div>
+                                                    <div class="media-right">
+                                                        <a href="/Comment/CommentDel/@item2.ID"><i class="glyphicon glyphicon-trash"></i></a>
+                                                    </div>
+                                                </div>
+                                                <section class="post-body" style="word-wrap:break-word;">
+                                                    <p>
+                                                        @item2.CommentText
+                                                    </p>
+                                                </section>
+                                            </div>
+                                        </div>
+                                    }
+                                    <form action="/Comment/AddComment/@item.ID" method="post">
+                                        <div class="media">
+                                            <div class="media-body form-group has-feedback input-group">
+                                                <div class="col-md-1">
+                                                    <a class="media-left" href="#fake">
+                                                        <img src="~/image/facebook-profile.png" alt="" class="media-object img-rounded" width="32" height="32">
+                                                    </a>
+                                                </div>
+                                                <div class="col-md-9"><input type="text" class="form-control" rows="5" name="CommentText" placeholder="Comment"></div>
+
+                                                <div class="input-group-btn col-md-2">
+                                                    <button type="submit" class="btn btn-default">
+                                                        <i class="glyphicon glyphicon-send" style="color:#365899"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </section>
+                            </div>
+                        </div>
+                        <br />
+                    }
+
+                </div>
+            </div>
+            <div class="panel-footer" style="margin-top:10px">
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,195 @@
+﻿@using Facebook.Models.BaseEntity
+@using Facebook.SessionSettings
+@using Facebook.Models.Repository
+@{
+    FacebookDbContext _db = new FacebookDbContext();
+    Layout = null;
+    var Posts = _db.Posts.ToList();
+    var User = _db.Users.ToList();
+
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>HomeLayout</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Css/Homecss.css" rel="stylesheet" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    
+    <style>
+        .navbar-inverse .navbar-nav > .open > a, .navbar-inverse .navbar-nav > .open > a:focus, .navbar-inverse .navbar-nav > .open > a:hover {
+            background-color: transparent;
+        }
+
+        #circle {
+            position: absolute;
+            top: 1rem;
+            left: 3rem;
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 100%;
+            background: #f07379;
+        }
+
+        .dropdown-menu {
+            min-width: 280px;
+        }
+    </style>
+</head>
+<body style="padding-top:0px">
+    <nav class="navbar navbar-inverse navbar-fixed-top" style="background-color:#365899;height:40px;border-color:transparent;">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/Home/Home"> <img src="~/image/bgwhite.png" width="30" height="30" /></a>
+                <form class="navbar-form navbar-left" action="/action_page.php">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" type="submit">
+                                <i class="glyphicon glyphicon-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <ul class="nav navbar-nav  navbar-right">
+                @{var name = SessionSetting.SessionSet<User>.Get("Login").Name;}
+                <li>
+                    <a href="/Home/MyProfile/"  title="My Profile">
+                        <div class="media-left">
+                            <img class="media-object photo-profile img-circle" src="~/image/facebook-profile.png" width="20" height="20" alt="...">
+                        </div>
+                        <div class="media-right">
+                            @name
+                        </div>
+                    </a>
+                </li>
+                <li><a href="/RelationShip/GetFriendns" title="My Friends" ><span class="glyphicon glyphicon-user" ></span><span class="glyphicon glyphicon-user"></span></a></li>
+                <li><a href="/Home/Home"  title="Home"><span class="glyphicon glyphicon-home"></span></a></li>
+
+                <li><a href="/Chat/Chat"  title="My Messages"><span class="glyphicon glyphicon-comment"></span></a></li>
+                <li class="nav-item dropdown">
+
+                    <a v-on:click="show = !show" class="glyphicon glyphicon-globe dropdown-toggle" data-toggle="dropdown"  title="My Notifications">
+                        <i class="far fa-2x fa-bell"></i>
+                        <span id="circle"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                        <li class="header" style="text-align:left">
+                            <div class="media">
+                                <div class="media-left text-left">
+                                    Notifications
+                                </div>
+                                <div class="media-left text-right" style="padding-left:73px">
+                                    <a class="notification-link" href="/Home/Home">Mark All Read As</a>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <ul class="menu" style="list-style-type:none">
+                                @{
+                                    FacebookDbContext db = new FacebookDbContext();
+                                    var userID = SessionSetting.SessionSet<User>.Get("Login").ID;
+                                    var myUser = db.Users.FirstOrDefault(k => k.ID == userID);
+                                    var list = db.Notifications.Where(x => (x.PostUserID == myUser.ID) && (x.IsShow == true)).ToList();
+                                    BaseRepository<Notification> br = new BaseRepository<Notification>();
+
+                                }
+                                @foreach (var item in list)
+                                {
+                                    <li>
+                                        <div class="media">
+                                            <div class="media-left">
+                                                <img class="media-object photo-profile img-circle" src="~/image/facebook-profile.png" width="20" height="20" alt="...">
+                                            </div>
+                                            <div class="media-right">
+                                                @item.NotifyText
+                                            </div>
+                                        </div>
+                                    </li>
+                                    var not = db.Notifications.Where(k => k.ID == item.ID).First();
+                                    not.IsShow = false;
+                                    br.Update(not);
+                                }
+                            </ul>
+                        </li>
+                        <li class="footer" style="text-align:center"><a href="#">View all</a></li>
+                    </ul>
+                </li>
+
+                <li><a href="/User/Login" method="post"  title="Logout"><span class="glyphicon glyphicon-log-out"></span></a></li>
+            </ul>
+
+        </div>
+    </nav>
+
+    <div class="rows" style="margin-top:75px">
+        <div class="col-lg-9">
+            <div class="col-lg-10">
+                <form action="/Post/AddPost" method="post">
+                    <div class="col-xs-12" id="new_status">
+                        <ul class="navbar-nav col-xs-12" id="post_header" role="navigation">
+                            <li><a href="#"><span class="glyphicon glyphicon-pencil"></span>Update Status</a></li>
+                            <li><a href="#"><span class="glyphicon glyphicon-picture"></span>Add Photos/Video</a></li>
+                            <li><a href="#"><span class="glyphicon glyphicon-th"></span>Create Photo Album</a></li>
+                        </ul>
+                        <div class="col-xs-12" id="post_content">
+                            <img alt="profile picture" class="col-xs-1" src="~/image/facebook-profile.png">
+                            <div class="textarea_wrap"><textarea class="col-xs-11" name="PostText" placeholder="What's on your mind?"></textarea></div>
+                        </div>
+                        <div class="col-xs-12" id="post_footer">
+                            <ul class="navbar-nav col-xs-7">
+                                <li><a href="#"><span class="glyphicon glyphicon-camera"></span></a></li>
+                                <li><a href="#"><span class="glyphicon glyphicon-user"></span></a></li>
+                                <li><a href="#"><span class="glyphicon glyphicon-sunglasses"></span></a></li>
+                                <li><a href="#"><span class="glyphicon glyphicon-map-marker"></span></a></li>
+                            </ul>
+                            <div class="col-xs-5">
+                                <button class="btn btn-default"><span class="glyphicon glyphicon-cog"></span>Custom<span class="caret"></span></button>
+                                <button type="submit" class="btn btn-primary">Post</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+        <div class="col-lg-3">
+            @Html.Action("GetPeople", "User")
+        </div>
+    </div>
+    <div class="rows">
+        <div class="col-lg-9">
+            <div class="col-lg-10">
+                <br />
+                <div class="container">
+                    @Html.Action("GetPost", "Post")
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            @Html.Action("GetRequest", "RelationShip")
+        </div>
+ 
+    </div>
+
+    
+    <script>
+        function h(e) {
+            $(e).css({ 'height': '65px', 'overflow-y': 'hidden' }).height(e.scrollHeight - 30);
+        }
+        $('textarea').each(function () {
+            h(this);
+        }).on('input', function () {
+            h(this);
+        });
+    </script>
+
+
+</body>
+</html>
